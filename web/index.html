@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#B71C1C">
+<title>مخزون مصرف الدم</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --primary: #B71C1C; --primary-container: #FFDAD6; --on-primary: #fff;
+    --green: #2E7D32; --blue: #1565C0; --purple: #4A148C; --secondary: #775652;
+    --bg: #FFFBFF; --surface: #fff; --surface-variant: #F5DDDA; --text: #201A19;
+    --muted: #6d6d6d; --border: #e3d0ce; --danger: #D32F2F; --total-bg: #FDECEC;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text);
+    font-family: "Segoe UI", Tahoma, "Noto Sans Arabic", Arial, sans-serif; font-size: 16px; }
+  header { position: sticky; top: 0; z-index: 10; background: var(--primary); color: var(--on-primary);
+    display: flex; align-items: center; gap: 8px; padding: 12px 12px; min-height: 56px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.2); }
+  header h1 { font-size: 19px; margin: 0; flex: 1; font-weight: 700; }
+  header button { background: none; border: none; color: #fff; font-size: 24px; padding: 4px 8px; cursor: pointer; }
+  main { padding: 14px; max-width: 760px; margin: 0 auto; padding-bottom: 80px; }
+  .card { background: var(--surface); border-radius: 14px; padding: 14px; margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+  .card.primary { background: var(--primary-container); }
+  .card.variant { background: var(--surface-variant); }
+  .card h2, .card h3 { margin: 0 0 8px; }
+  .card h3 { color: var(--primary); font-size: 17px; }
+  .btn { display: block; width: 100%; min-height: 56px; border: none; border-radius: 28px;
+    background: var(--primary); color: #fff; font-size: 17px; font-weight: 600; margin: 8px 0;
+    cursor: pointer; font-family: inherit; padding: 8px 16px; }
+  .btn:active { opacity: .85; }
+  .btn:disabled { opacity: .5; }
+  .btn.green { background: var(--green); } .btn.blue { background: var(--blue); }
+  .btn.purple { background: var(--purple); } .btn.secondary { background: var(--secondary); }
+  .btn.outline { background: transparent; color: var(--primary); border: 1.5px solid var(--primary); min-height: 46px; }
+  .btn.small { min-height: 38px; font-size: 14px; width: auto; display: inline-block; margin: 4px; padding: 4px 14px; }
+  .row2 { display: flex; gap: 10px; } .row2 > * { flex: 1; }
+  .between { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; }
+  label.field { display: block; margin: 8px 0; }
+  label.field span { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  input[type=text], input[type=number], input[type=tel], textarea {
+    width: 100%; padding: 12px; font-size: 16px; border: 1.5px solid #bbb; border-radius: 8px;
+    font-family: inherit; background: #fff; color: var(--text); }
+  input:focus, textarea:focus { outline: none; border-color: var(--primary); }
+  input.error, textarea.error { border-color: var(--danger); background: #fff6f6; }
+  textarea { min-height: 70px; resize: vertical; }
+  .tabs { display: flex; overflow-x: auto; gap: 4px; border-bottom: 1px solid var(--border);
+    margin: -14px -14px 12px; padding: 0 8px; background: var(--surface); position: sticky; top: 56px; z-index: 5; }
+  .tab { padding: 12px 14px; white-space: nowrap; border: none; background: none; font-size: 15px;
+    font-family: inherit; color: var(--muted); border-bottom: 3px solid transparent; cursor: pointer; }
+  .tab.active { color: var(--primary); border-bottom-color: var(--primary); font-weight: 700; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0; }
+  .chip { padding: 9px 14px; border-radius: 10px; border: 1.5px solid #999; background: #fff;
+    font-size: 15px; cursor: pointer; font-family: inherit; color: var(--text); }
+  .chip.selected { background: var(--primary-container); border-color: var(--primary); font-weight: 700; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: center; padding: 8px 2px; border-bottom: 1px solid var(--border); }
+  th { background: var(--primary-container); font-weight: 700; }
+  tr.total td { background: var(--total-bg); font-weight: 700; }
+  td.name { font-weight: 700; }
+  .pos { color: var(--green); } .neg { color: var(--primary); }
+  .err { color: var(--danger); } .muted { color: var(--muted); font-size: 13px; }
+  .alert { background: #FFEBEE; color: var(--danger); font-weight: 700; padding: 10px; border-radius: 8px; margin: 8px 0; }
+  .note { color: var(--secondary); margin: 8px 0; }
+  .recv-row { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+  .recv-row .nm { width: 84px; font-weight: 700; }
+  .recv-row input { flex: 1; }
+  .recv-row .info { width: 92px; font-size: 12px; }
+  .mv { padding: 8px 0; border-bottom: 1px solid var(--border); }
+  .mv.voided { opacity: .55; text-decoration: line-through; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; color: #fff; }
+  .badge.ADD { background: var(--green); } .badge.DISPENSE { background: var(--primary); } .badge.ADJUSTMENT { background: var(--blue); }
+  .check { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+  .check input { width: 22px; height: 22px; }
+  .snackbar { position: fixed; bottom: 16px; left: 16px; right: 16px; max-width: 600px; margin: 0 auto;
+    background: #323232; color: #fff; padding: 14px 16px; border-radius: 8px; z-index: 100;
+    box-shadow: 0 3px 8px rgba(0,0,0,.3); transition: opacity .3s; pointer-events: none; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 50; display: flex;
+    align-items: center; justify-content: center; padding: 16px; }
+  .modal { background: #fff; border-radius: 18px; padding: 20px; max-width: 520px; width: 100%;
+    max-height: 85vh; overflow-y: auto; }
+  .modal h2 { margin-top: 0; font-size: 20px; }
+  .modal .actions { display: flex; gap: 8px; justify-content: flex-start; margin-top: 14px; flex-wrap: wrap; }
+  .modal .actions button { background: none; border: none; color: var(--primary); font-size: 16px;
+    font-weight: 700; padding: 10px 14px; cursor: pointer; font-family: inherit; }
+  .cls-row { display: flex; align-items: center; gap: 4px; padding: 6px 0; border-bottom: 1px solid var(--border); }
+  .cls-row .nm { flex: 1; font-weight: 600; }
+  .cls-row.inactive .nm { color: #aaa; text-decoration: line-through; }
+  .icon-btn { background: none; border: 1px solid #ccc; border-radius: 8px; padding: 6px 10px; font-size: 15px; cursor: pointer; }
+  .disclaimer { color: var(--muted); font-size: 13px; margin-top: 16px; line-height: 1.6; }
+
+  /* ===== التقرير ===== */
+  .report { background: #fff; padding: 10px; }
+  .report h1 { text-align: center; font-size: 20px; margin: 4px 0; }
+  .report h2 { text-align: center; font-size: 16px; margin: 4px 0 10px; color: #444; }
+  .report .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 13px; border: 1px solid #999; padding: 8px; margin-bottom: 10px; }
+  .report h3 { font-size: 15px; margin: 12px 0 4px; color: var(--primary); }
+  .report table { font-size: 12px; } .report th, .report td { border: 1px solid #999; padding: 4px 2px; }
+  .report .sign { display: flex; justify-content: space-between; margin-top: 30px; font-size: 13px; }
+  .report .sign div { width: 45%; border-top: 1px solid #333; padding-top: 6px; text-align: center; }
+
+  @media print {
+    @page { size: A4; margin: 12mm; }
+    header, .no-print, .snackbar { display: none !important; }
+    main { padding: 0; max-width: none; }
+    body { background: #fff; }
+    .card { box-shadow: none; padding: 0; }
+    th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    tr.total td { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .report h3 { page-break-after: avoid; } table { page-break-inside: auto; } tr { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <button id="backBtn" aria-label="رجوع" style="display:none">&#x2192;</button>
+  <h1 id="title">مخزون مصرف الدم</h1>
+  <span id="headerActions"></span>
+</header>
+<main id="app"></main>
+
+<script>
+"use strict";
+/* =====================================================================
+   مخزون مصرف الدم — نسخة ويب تعمل دون إنترنت.
+   كل البيانات محفوظة على الجهاز (localStorage).
+   المعادلة لكل تصنيف بشكل مستقل:
+   الرصيد النهائي = الرصيد الافتتاحي + الإضافات − المصروفات + التسويات المعتمدة
+   ===================================================================== */
+
+/* ===================== النماذج ===================== */
+const CATEGORIES = [
+  { key: "RBC", ar: "كريات الدم الحمراء", en: "PRBC", defaults: ["A+","A-","B+","B-","O+","O-","AB+","AB-"] },
+  { key: "PLATELETS", ar: "الصفائح الدموية", en: "Platelets", defaults: ["A","B","O","AB","تريما A","تريما B","تريما O","تريما AB","ريفيس A","ريفيس B","ريفيس O","ريفيس AB"] },
+  { key: "PLASMA", ar: "البلازما", en: "Plasma", defaults: ["A","B","O","AB"] },
+  { key: "CRYO", ar: "الراسب البردي", en: "Cryo", defaults: ["A","B","O","AB"] }
+];
+const CAT = Object.fromEntries(CATEGORIES.map((c, i) => [c.key, Object.assign({ ordinal: i }, c)]));
+const catDisplay = k => `${CAT[k].ar} (${CAT[k].en})`;
+const MT = { ADD: "إضافة", DISPENSE: "صرف", ADJUSTMENT: "تسوية" };
+
+class InventoryError extends Error {}
+
+/* ===================== الحسابات (نفس منطق BalanceCalculator) ===================== */
+const Calc = {
+  computeRows(classes, openings, movements) {
+    const active = movements.filter(m => !m.voided);
+    return classes.slice()
+      .sort((a, b) => CAT[a.category].ordinal - CAT[b.category].ordinal || a.sortOrder - b.sortOrder || a.id - b.id)
+      .map(c => {
+        const list = active.filter(m => m.classificationId === c.id);
+        const sum = t => list.filter(m => m.type === t).reduce((s, m) => s + m.quantity, 0);
+        return Calc.row(c.id, c.category, c.name, c.sortOrder, openings[c.id] || 0, sum("ADD"), sum("DISPENSE"), sum("ADJUSTMENT"));
+      });
+  },
+  row(classificationId, category, name, sortOrder, opening, added, dispensed, adjustment) {
+    return { classificationId, category, name, sortOrder, opening, added, dispensed, adjustment,
+             closing: opening + added - dispensed + adjustment };
+  },
+  totals(rows) {
+    const t = { opening: 0, added: 0, dispensed: 0, adjustment: 0 };
+    rows.forEach(r => { t.opening += r.opening; t.added += r.added; t.dispensed += r.dispensed; t.adjustment += r.adjustment; });
+    t.closing = t.opening + t.added - t.dispensed + t.adjustment;
+    return t;
+  },
+  categoryTotals(rows) {
+    const out = {};
+    CATEGORIES.forEach(c => out[c.key] = Calc.totals(rows.filter(r => r.category === c.key)));
+    return out;
+  },
+  validateMovement(type, qty, available, note) {
+    if (!Number.isInteger(qty)) return "أدخل رقماً صحيحاً";
+    if (type === "ADD") return qty <= 0 ? "يجب أن تكون الكمية المضافة أكبر من صفر" : null;
+    if (type === "DISPENSE") {
+      if (qty <= 0) return "يجب أن تكون الكمية المصروفة أكبر من صفر";
+      if (qty > available) return `لا يمكن صرف ${qty} وحدة؛ الرصيد المتاح ${available} فقط`;
+      return null;
+    }
+    if (qty === 0) return "قيمة التسوية لا يمكن أن تكون صفراً";
+    if (!String(note || "").trim()) return "يجب كتابة سبب التسوية";
+    if (available + qty < 0) return `التسوية تجعل الرصيد سالباً (${available + qty})؛ غير مسموح`;
+    return null;
+  },
+  balanceAfter(type, qty, available) { return type === "DISPENSE" ? available - qty : available + qty; },
+  effect(type, qty) { return Calc.balanceAfter(type, qty, 0); },
+  validateVoid(m, available) {
+    if (m.voided) return "هذه الحركة ملغاة مسبقاً";
+    const after = available - Calc.effect(m.type, m.quantity);
+    return after < 0 ? `لا يمكن إلغاء الحركة لأن الرصيد سيصبح سالباً (${after})` : null;
+  },
+  differences(expected, actual) {
+    const out = {};
+    new Set([...Object.keys(expected), ...Object.keys(actual)]).forEach(k => {
+      const d = (actual[k] || 0) - (expected[k] || 0);
+      if (d !== 0) out[k] = d;
+    });
+    return out;
+  },
+  negativeRows(rows) { return rows.filter(r => r.closing < 0); }
+};
+
+/* ===================== التخزين ===================== */
+const STORE_KEY = "bloodbank_db_v1";
+let db;
+
+function freshDb() {
+  const d = { version: 1, seq: 0, classifications: [], shifts: [], openings: [], movements: [], closings: [], audit: [],
+              settings: { hospital_name: "مصرف الدم" } };
+  CATEGORIES.forEach(c => c.defaults.forEach((name, i) =>
+    d.classifications.push({ id: ++d.seq, category: c.key, name, sortOrder: i, active: true })));
+  return d;
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    db = raw ? JSON.parse(raw) : null;
+  } catch (e) { db = null; }
+  if (!db || !Array.isArray(db.classifications)) { db = freshDb(); save(); }
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(db)); }
+  catch (e) { alert("تعذر حفظ البيانات على الجهاز: " + e.message); throw e; }
+}
+/** تنفيذ عملية كمعاملة واحدة: إما تُحفظ كلها أو لا يُحفظ شيء. */
+function transaction(fn) {
+  const snapshot = JSON.stringify(db);
+  try { const r = fn(); save(); return r; }
+  catch (e) { db = JSON.parse(snapshot); throw e; }
+}
+const nextId = () => ++db.seq;
+const now = () => Date.now();
+
+/* ===================== المستودع (نفس منطق InventoryRepository) ===================== */
+const Repo = {
+  openShift() { return db.shifts.filter(s => s.status === "OPEN").sort((a, b) => b.id - a.id)[0] || null; },
+  closedShifts() {
+    return db.shifts.filter(s => s.status === "CLOSED").sort((a, b) => (b.closedAt - a.closedAt) || (b.id - a.id));
+  },
+  classes() { return db.classifications.slice().sort((a, b) => CAT[a.category].ordinal - CAT[b.category].ordinal || a.sortOrder - b.sortOrder || a.id - b.id); },
+  cls(id) { return db.classifications.find(c => c.id === id) || null; },
+  shift(id) { return db.shifts.find(s => s.id === id) || null; },
+  openings(shiftId) { return db.openings.filter(o => o.shiftId === shiftId); },
+  movements(shiftId) { return db.movements.filter(m => m.shiftId === shiftId).sort((a, b) => a.createdAt - b.createdAt || a.id - b.id); },
+  closings(shiftId) { return db.closings.filter(c => c.shiftId === shiftId); },
+
+  /** التصنيفات المعروضة = المفعّلة + أي تصنيف له رصيد افتتاحي أو حركة في هذه الخفارة. */
+  rows(shiftId) {
+    const openings = Repo.openings(shiftId), movements = Repo.movements(shiftId);
+    const used = new Set([...openings.map(o => o.classificationId), ...movements.map(m => m.classificationId)]);
+    const shown = Repo.classes().filter(c => c.active || used.has(c.id));
+    const om = {}; openings.forEach(o => om[o.classificationId] = o.actual);
+    return Calc.computeRows(shown, om, movements);
+  },
+  available(shiftId, classId) {
+    const r = Repo.rows(shiftId).find(r => r.classificationId === classId);
+    return r ? r.closing : 0;
+  },
+
+  prepareReceiving() {
+    const previous = Repo.closedShifts()[0] || null;
+    const classes = Repo.classes();
+    let expected = null;
+    if (previous) {
+      const closings = {}; Repo.closings(previous.id).forEach(c => closings[c.classificationId] = c.closing);
+      expected = {};
+      classes.filter(c => c.active || (closings[c.id] || 0) !== 0).forEach(c => expected[c.id] = closings[c.id] || 0);
+    }
+    const shown = classes.filter(c => c.active || (expected && (expected[c.id] || 0) !== 0));
+    const n = previous ? parseInt(String(previous.shiftNumber).trim(), 10) : NaN;
+    const suggested = previous && /^\d+$/.test(String(previous.shiftNumber).trim()) ? String(n + 1) : "";
+    return { classifications: shown, expected, previousShift: previous, suggestedShiftNumber: suggested };
+  },
+
+  confirmReceiving(shiftNumber, receiver, deliverer, actual, note) {
+    return transaction(() => {
+      if (Repo.openShift()) throw new InventoryError("توجد خفارة مفتوحة بالفعل؛ يجب إنهاؤها أولاً");
+      if (Object.values(actual).some(v => v < 0)) throw new InventoryError("لا يُسمح بأعداد سالبة");
+      const draft = Repo.prepareReceiving();
+      const previous = draft.previousShift;
+      if (previous && db.shifts.some(s => s.previousShiftId === previous.id)) throw new InventoryError("تم ترحيل رصيد الخفارة السابقة مسبقاً");
+      const ids = new Set([...draft.classifications.map(c => c.id), ...Object.keys(actual).map(Number)]);
+      const expected = draft.expected;
+      const filteredActual = {}; Object.keys(actual).forEach(k => { if (ids.has(Number(k))) filteredActual[k] = actual[k]; });
+      const diffs = expected ? Calc.differences(expected, filteredActual) : {};
+      if (Object.keys(diffs).length && !note.trim()) throw new InventoryError("يوجد فرق بين العدد الفعلي والمتوقع؛ يجب كتابة ملاحظة توضح سبب الفرق");
+
+      const shiftId = nextId();
+      db.shifts.push({ id: shiftId, shiftNumber: shiftNumber.trim(), openedAt: now(), receiverName: receiver.trim(),
+        delivererName: deliverer.trim(), receiveNote: note.trim(), status: "OPEN", previousShiftId: previous ? previous.id : null,
+        closedAt: null, handoverToName: "", closingNotes: "" });
+      ids.forEach(id => {
+        const c = Repo.cls(id); if (!c) return;
+        db.openings.push({ shiftId, classificationId: id, category: c.category, name: c.name, sortOrder: c.sortOrder,
+          expected: expected ? (expected[id] ?? null) : null, actual: actual[id] || 0 });
+      });
+      const diffText = Object.keys(diffs).length ? Object.entries(diffs).map(([id, d]) => {
+        const c = Repo.cls(Number(id)); return `${c ? CAT[c.category].ar + " " + c.name : id}: ${signed(d)}`;
+      }).join("، ") : "لا توجد فروقات";
+      Repo.audit(shiftId, "استلام خفارة", `رقم الخفارة: ${shiftNumber.trim() || "-"}، المستلم: ${receiver.trim() || "-"}، المسلِّم: ${deliverer.trim() || "-"}. ${diffText}. ${note.trim()}`);
+      return shiftId;
+    });
+  },
+
+  addMovement(shiftId, classId, type, qty, note, requestId) {
+    return transaction(() => {
+      const shift = Repo.shift(shiftId);
+      if (!shift) throw new InventoryError("الخفارة غير موجودة");
+      if (shift.status !== "OPEN") throw new InventoryError("الخفارة مغلقة؛ لا يمكن تسجيل حركات عليها");
+      const c = Repo.cls(classId); if (!c) throw new InventoryError("التصنيف غير موجود");
+      if (db.movements.some(m => m.requestId === requestId)) return false; // ضغط مكرر
+      const available = Repo.available(shiftId, classId);
+      const err = Calc.validateMovement(type, qty, available, note); if (err) throw new InventoryError(err);
+      db.movements.push({ id: nextId(), shiftId, classificationId: classId, category: c.category, classificationName: c.name,
+        type, quantity: qty, createdAt: now(), note: note.trim(), requestId, voided: false, voidedAt: null, voidReason: "" });
+      if (type === "ADJUSTMENT") Repo.audit(shiftId, "تسوية", `${CAT[c.category].ar} ${c.name}: ${signed(qty)} (الرصيد ${available} ← ${available + qty}). السبب: ${note.trim()}`);
+      return true;
+    });
+  },
+
+  voidMovement(id, reason) {
+    return transaction(() => {
+      if (!reason.trim()) throw new InventoryError("يجب كتابة سبب الإلغاء");
+      const m = db.movements.find(x => x.id === id); if (!m) throw new InventoryError("الحركة غير موجودة");
+      const shift = Repo.shift(m.shiftId); if (!shift) throw new InventoryError("الخفارة غير موجودة");
+      if (shift.status !== "OPEN") throw new InventoryError("لا يمكن تعديل حركات خفارة مغلقة؛ استخدم تسوية في الخفارة الحالية");
+      const err = Calc.validateVoid(m, Repo.available(m.shiftId, m.classificationId)); if (err) throw new InventoryError(err);
+      m.voided = true; m.voidedAt = now(); m.voidReason = reason.trim();
+      Repo.audit(m.shiftId, "إلغاء حركة", `${MT[m.type]} ${m.quantity} من ${CAT[m.category].ar} ${m.classificationName}. السبب: ${reason.trim()}`);
+    });
+  },
+
+  closeShift(shiftId, handoverTo, notes) {
+    return transaction(() => {
+      const shift = Repo.shift(shiftId); if (!shift) throw new InventoryError("الخفارة غير موجودة");
+      if (shift.status !== "OPEN") throw new InventoryError("الخفارة مغلقة مسبقاً");
+      const rows = Repo.rows(shiftId);
+      const negative = Calc.negativeRows(rows);
+      if (negative.length) throw new InventoryError("يوجد رصيد سالب في: " + negative.map(r => CAT[r.category].ar + " " + r.name).join("، "));
+      rows.forEach(r => db.closings.push({ shiftId, classificationId: r.classificationId, category: r.category, name: r.name,
+        sortOrder: r.sortOrder, opening: r.opening, added: r.added, dispensed: r.dispensed, adjustment: r.adjustment, closing: r.closing }));
+      shift.status = "CLOSED"; shift.closedAt = now(); shift.handoverToName = handoverTo.trim(); shift.closingNotes = notes.trim();
+      Repo.audit(shiftId, "إنهاء خفارة", `تم اعتماد الجرد النهائي. المستلم التالي: ${handoverTo.trim() || "-"}. إجمالي الرصيد النهائي: ${Calc.totals(rows).closing}`);
+      return shiftId;
+    });
+  },
+
+  report(shiftId) {
+    const shift = Repo.shift(shiftId); if (!shift) throw new InventoryError("الخفارة غير موجودة");
+    const rows = shift.status === "CLOSED"
+      ? Repo.closings(shiftId).map(c => Calc.row(c.classificationId, c.category, c.name, c.sortOrder, c.opening, c.added, c.dispensed, c.adjustment))
+          .sort((a, b) => CAT[a.category].ordinal - CAT[b.category].ordinal || a.sortOrder - b.sortOrder || a.classificationId - b.classificationId)
+      : Repo.rows(shiftId);
+    return { hospitalName: db.settings.hospital_name || "", shift, rows, openings: Repo.openings(shiftId), movements: Repo.movements(shiftId) };
+  },
+
+  setHospitalName(name) {
+    transaction(() => { db.settings.hospital_name = name.trim(); Repo.audit(null, "تعديل الإعدادات", `اسم المستشفى/المصرف: ${name.trim()}`); });
+  },
+  addClassification(category, name) {
+    transaction(() => {
+      const clean = name.trim(); if (!clean) throw new InventoryError("اكتب اسم التصنيف");
+      const existing = db.classifications.filter(c => c.category === category);
+      if (existing.some(c => c.name.toLowerCase() === clean.toLowerCase())) throw new InventoryError(`هذا التصنيف موجود مسبقاً في ${CAT[category].ar}`);
+      db.classifications.push({ id: nextId(), category, name: clean, sortOrder: Math.max(-1, ...existing.map(c => c.sortOrder)) + 1, active: true });
+      Repo.audit(null, "إضافة تصنيف", `${CAT[category].ar}: ${clean}`);
+    });
+  },
+  setClassificationActive(id, active) {
+    transaction(() => {
+      const c = Repo.cls(id); if (!c) return;
+      c.active = active; Repo.audit(null, active ? "تفعيل تصنيف" : "إيقاف تصنيف", `${CAT[c.category].ar}: ${c.name}`);
+    });
+  },
+  renameClassification(id, newName) {
+    transaction(() => {
+      const clean = newName.trim(); if (!clean) throw new InventoryError("اكتب اسم التصنيف");
+      const c = Repo.cls(id); if (!c) return;
+      if (db.classifications.some(x => x.category === c.category && x.id !== id && x.name.toLowerCase() === clean.toLowerCase())) throw new InventoryError("هذا الاسم مستخدم مسبقاً");
+      const old = c.name; c.name = clean; Repo.audit(null, "تعديل اسم تصنيف", `${CAT[c.category].ar}: ${old} ← ${clean}`);
+    });
+  },
+  moveClassification(id, dir) {
+    transaction(() => {
+      const c = Repo.cls(id); if (!c) return;
+      const list = db.classifications.filter(x => x.category === c.category).sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+      const i = list.findIndex(x => x.id === id), t = i + dir;
+      if (t < 0 || t >= list.length) return;
+      list.splice(t, 0, list.splice(i, 1)[0]);
+      list.forEach((x, k) => x.sortOrder = k);
+    });
+  },
+  audit(shiftId, action, details) {
+    db.audit.push({ id: nextId(), at: now(), shiftId, action, details });
+    if (db.audit.length > 5000) db.audit = db.audit.slice(-5000);
+  }
+};
+
+/* ===================== أدوات مساعدة ===================== */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+/** اسم فصيلة معزول الاتجاه حتى يظهر "A+" وليس "+A" داخل النص العربي. */
+const nm = s => `<bdi>${esc(s)}</bdi>`;
+const iso = s => "\u2068" + s + "\u2069";
+const pad = n => String(n).padStart(2, "0");
+const fmtDateTime = ms => { if (ms == null) return "-"; const d = new Date(ms); return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}  ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fmtTime = ms => { if (ms == null) return "-"; const d = new Date(ms); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+const fileStamp = () => { const d = new Date(); return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`; };
+/** رقم بإشارة، معزول باتجاه LTR حتى يظهر "-2" وليس "2-" داخل النص العربي. */
+const signed = n => "\u2066" + (n > 0 ? "+" + n : String(n)) + "\u2069";
+const uuid = () => (crypto && crypto.randomUUID) ? crypto.randomUUID() : (Date.now().toString(36) + Math.random().toString(36).slice(2));
+const digitsOnly = v => String(v).replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/[^\d]/g, "").slice(0, 5);
+const shiftLabel = s => s.shiftNumber ? s.shiftNumber : "#" + s.id;
+
+let snackTimer;
+function snack(msg) {
+  let el = document.querySelector(".snackbar");
+  if (!el) { el = document.createElement("div"); el.className = "snackbar"; document.body.appendChild(el); }
+  el.textContent = msg; el.style.opacity = "1";
+  clearTimeout(snackTimer); snackTimer = setTimeout(() => { el.style.opacity = "0"; setTimeout(() => el.remove(), 300); }, 3500);
+}
+function run(fn) {
+  try { return { ok: true, value: fn() }; }
+  catch (e) { snack(e instanceof InventoryError ? e.message : "حدث خطأ غير متوقع: " + e.message); return { ok: false }; }
+}
+function modal(title, bodyHtml, buttons) {
+  closeModal();
+  const bg = document.createElement("div"); bg.className = "modal-bg"; bg.id = "modalBg";
+  bg.innerHTML = `<div class="modal"><h2>${esc(title)}</h2><div>${bodyHtml}</div><div class="actions"></div></div>`;
+  const actions = bg.querySelector(".actions");
+  buttons.forEach(b => { const btn = document.createElement("button"); btn.textContent = b.text; btn.onclick = b.onClick; actions.appendChild(btn); });
+  document.body.appendChild(bg);
+  return bg;
+}
+function closeModal() { const m = $("modalBg"); if (m) m.remove(); }
+
+/* ===================== التنقل ===================== */
+let route = { name: "home" };
+const history_ = [];
+function go(name, params) { history_.push(route); route = Object.assign({ name }, params || {}); render(); window.scrollTo(0, 0); }
+function back() { closeModal(); route = history_.pop() || { name: "home" }; render(); window.scrollTo(0, 0); }
+function home() { history_.length = 0; route = { name: "home" }; render(); window.scrollTo(0, 0); }
+$("backBtn").onclick = back;
+// زر الرجوع في الهاتف (داخل التطبيق المحوّل)
+window.addEventListener("popstate", () => { if (history_.length) { back(); history.pushState(null, ""); } });
+history.pushState(null, "");
+
+function setHeader(title, showBack, actionsHtml) {
+  $("title").textContent = title;
+  $("backBtn").style.display = showBack ? "" : "none";
+  $("headerActions").innerHTML = actionsHtml || "";
+}
+
+/* ===================== مكونات العرض ===================== */
+function categoryTabs(selected, includeSummary) {
+  const tabs = CATEGORIES.map(c => c.ar).concat(includeSummary ? ["الملخص"] : []);
+  return `<div class="tabs no-print">${tabs.map((t, i) => `<button class="tab ${i === selected ? "active" : ""}" data-tab="${i}">${t}</button>`).join("")}</div>`;
+}
+function bindTabs(onSelect) { document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => onSelect(Number(b.dataset.tab))); }
+
+function balanceTable(rows, total, closingLabel) {
+  const showAdj = rows.some(r => r.adjustment !== 0);
+  let h = `<table><thead><tr><th>الفصيلة</th><th>المستلم</th><th>المضاف</th><th>المصروف</th>${showAdj ? "<th>التسوية</th>" : ""}<th>${closingLabel || "الرصيد الحالي"}</th></tr></thead><tbody>`;
+  rows.forEach(r => {
+    h += `<tr><td class="name">${nm(r.name)}</td><td>${r.opening}</td><td class="${r.added > 0 ? "pos" : ""}">${r.added}</td><td class="${r.dispensed > 0 ? "neg" : ""}">${r.dispensed}</td>${showAdj ? `<td>${signed(r.adjustment)}</td>` : ""}<td><b>${r.closing}</b></td></tr>`;
+  });
+  if (total) h += `<tr class="total"><td>الإجمالي</td><td>${total.opening}</td><td>${total.added}</td><td>${total.dispensed}</td>${showAdj ? `<td>${signed(total.adjustment)}</td>` : ""}<td>${total.closing}</td></tr>`;
+  if (!rows.length) h += `<tr><td colspan="6" class="muted">لا توجد تصنيفات</td></tr>`;
+  return h + "</tbody></table>";
+}
+function summaryTable(rows) {
+  const ct = Calc.categoryTotals(rows), g = Calc.totals(rows);
+  let h = `<table><thead><tr><th>الصنف</th><th>المستلم</th><th>المضاف</th><th>المصروف</th><th>الرصيد</th></tr></thead><tbody>`;
+  CATEGORIES.forEach(c => { const t = ct[c.key]; h += `<tr><td class="name">${c.ar}</td><td>${t.opening}</td><td>${t.added}</td><td>${t.dispensed}</td><td><b>${t.closing}</b></td></tr>`; });
+  h += `<tr class="total"><td>المجموع الكلي</td><td>${g.opening}</td><td>${g.added}</td><td>${g.dispensed}</td><td>${g.closing}</td></tr></tbody></table>`;
+  if (g.adjustment !== 0) h += `<div class="muted">يشمل الرصيد تسويات معتمدة صافيها ${signed(g.adjustment)}</div>`;
+  return h;
+}
+
+/* ===================== الشاشات ===================== */
+const screens = {};
+
+screens.home = () => {
+  setHeader(db.settings.hospital_name || "مخزون مصرف الدم", false);
+  const s = Repo.openShift();
+  let h = "";
+  if (!s) {
+    h += `<div class="card primary"><h2>لا توجد خفارة مفتوحة</h2><div>ابدأ باستلام الخفارة وجرد المخزون الفعلي.</div></div>
+          <button class="btn" id="bReceive">استلام الخفارة</button>`;
+  } else {
+    const ct = Calc.categoryTotals(Repo.rows(s.id));
+    h += `<div class="card"><h2>الخفارة الحالية: ${esc(shiftLabel(s))}</h2>
+          <div>الاستلام: ${fmtDateTime(s.openedAt)}</div>${s.receiverName ? `<div>الموظف: ${esc(s.receiverName)}</div>` : ""}
+          <div style="margin-top:8px">${CATEGORIES.map(c => `<div class="between"><span>${c.ar}</span><b>${ct[c.key].closing}</b></div>`).join("")}</div></div>
+          <div class="row2"><button class="btn green" id="bAdd">إضافة رصيد</button><button class="btn" id="bDispense">صرف</button></div>
+          <button class="btn blue" id="bAdjust">تسوية / تصحيح موثق</button>
+          <button class="btn secondary" id="bBalance">الرصيد الحالي والحركات</button>
+          <button class="btn purple" id="bClose">إنهاء الخفارة والجرد النهائي</button>`;
+  }
+  h += `<div style="height:8px"></div>
+        <button class="btn outline" id="bReports">تقارير الخفارات السابقة</button>
+        <button class="btn outline" id="bSettings">الإعدادات والتصنيفات</button>
+        <button class="btn outline" id="bBackup">النسخ الاحتياطي والاستعادة</button>
+        <div class="disclaimer">التطبيق لحساب المخزون والتوثيق فقط، ولا يحل محل إجراءات التوافق أو القرارات الطبية المعتمدة.</div>`;
+  $("app").innerHTML = h;
+  const on = (id, f) => { const e = $(id); if (e) e.onclick = f; };
+  on("bReceive", () => go("receive")); on("bAdd", () => go("movement", { type: "ADD" }));
+  on("bDispense", () => go("movement", { type: "DISPENSE" })); on("bAdjust", () => go("movement", { type: "ADJUSTMENT" }));
+  on("bBalance", () => go("balance")); on("bClose", () => go("close"));
+  on("bReports", () => go("reports")); on("bSettings", () => go("settings")); on("bBackup", () => go("backup"));
+};
+
+/* ---------- استلام الخفارة ---------- */
+screens.receive = () => {
+  setHeader("استلام الخفارة", true);
+  if (Repo.openShift()) { $("app").innerHTML = `<div class="card">توجد خفارة مفتوحة حالياً. أنهِ الخفارة الحالية قبل استلام خفارة جديدة.</div>`; return; }
+  const d = route.draft || (route.draft = Repo.prepareReceiving());
+  const f = route.form || (route.form = {
+    shiftNumber: d.suggestedShiftNumber, receiver: "",
+    deliverer: d.previousShift ? (d.previousShift.handoverToName || d.previousShift.receiverName) : "",
+    note: "", qty: Object.fromEntries(d.classifications.map(c => [c.id, d.expected && d.expected[c.id] != null ? String(d.expected[c.id]) : ""]))
+  });
+
+  let h = `<div class="card"><h3 style="color:inherit">بيانات الخفارة</h3>
+    <div class="muted">التاريخ والوقت: ${fmtDateTime(now())} (يُسجل تلقائياً عند الاعتماد)</div>
+    <label class="field"><span>رقم الخفارة</span><input type="text" id="fShift" value="${esc(f.shiftNumber)}"></label>
+    <label class="field"><span>اسم الموظف المستلم (أنت)</span><input type="text" id="fReceiver" value="${esc(f.receiver)}"></label>
+    <label class="field"><span>اسم الموظف المسلِّم (السابق)</span><input type="text" id="fDeliverer" value="${esc(f.deliverer)}"></label></div>`;
+  h += d.previousShift
+    ? `<div class="note">تمت تعبئة الأعداد تلقائياً من الرصيد الختامي للخفارة السابقة (${esc(shiftLabel(d.previousShift))}). عدّل أي رقم حسب الجرد الفعلي.</div>`
+    : `<div class="note">هذه أول خفارة في التطبيق: أدخل الأعداد التي استلمتها فعلياً.</div>`;
+  CATEGORIES.forEach(cat => {
+    const classes = d.classifications.filter(c => c.category === cat.key);
+    h += `<div class="card"><div class="between"><h3 style="margin:0">${catDisplay(cat.key)}</h3><b id="sum_${cat.key}"></b></div>`;
+    if (!classes.length) h += `<div class="muted">لا توجد تصنيفات مفعلة لهذا الصنف (من الإعدادات)</div>`;
+    classes.forEach(c => {
+      const exp = d.expected ? d.expected[c.id] : undefined;
+      h += `<div class="recv-row"><span class="nm">${nm(c.name)}</span>
+        <input type="tel" inputmode="numeric" class="qty" data-id="${c.id}" value="${esc(f.qty[c.id] ?? "")}" placeholder="العدد">
+        <span class="info">${exp != null ? `المتوقع: ${exp}` : ""}<br><b class="err" id="diff_${c.id}"></b></span></div>`;
+    });
+    h += `</div>`;
+  });
+  h += `<div id="diffAlert"></div>
+    <label class="field"><span id="noteLabel">ملاحظات الاستلام (اختياري)</span><textarea id="fNote">${esc(f.note)}</textarea></label>
+    <button class="btn" id="bReview">مراجعة الأعداد قبل الاعتماد</button>`;
+  $("app").innerHTML = h;
+
+  const actual = () => Object.fromEntries(d.classifications.map(c => [c.id, parseInt(f.qty[c.id], 10) || 0]));
+  const diffs = () => d.expected ? Calc.differences(d.expected, actual()) : {};
+  const refresh = () => {
+    const a = actual(), df = diffs();
+    CATEGORIES.forEach(cat => $("sum_" + cat.key).textContent = "المجموع: " + d.classifications.filter(c => c.category === cat.key).reduce((s, c) => s + a[c.id], 0));
+    d.classifications.forEach(c => {
+      const el = $("diff_" + c.id); el.textContent = df[c.id] != null ? "الفرق: " + signed(df[c.id]) : "";
+      document.querySelector(`.qty[data-id="${c.id}"]`).classList.toggle("error", df[c.id] != null);
+    });
+    const n = Object.keys(df).length;
+    $("diffAlert").innerHTML = n ? `<div class="alert">يوجد ${n} فرق بين العدد الفعلي والمتوقع. يجب توضيح السبب قبل الاعتماد.</div>` : "";
+    $("noteLabel").textContent = n ? "توثيق الفروقات (إلزامي)" : "ملاحظات الاستلام (اختياري)";
+    $("fNote").classList.toggle("error", n > 0 && !f.note.trim());
+  };
+  document.querySelectorAll(".qty").forEach(inp => {
+    inp.oninput = () => { inp.value = digitsOnly(inp.value); f.qty[inp.dataset.id] = inp.value; refresh(); };
+    inp.onkeydown = e => { if (e.key === "Enter") { const all = [...document.querySelectorAll(".qty")]; const n = all[all.indexOf(inp) + 1]; if (n) n.focus(); else inp.blur(); } };
+  });
+  $("fShift").oninput = e => f.shiftNumber = e.target.value;
+  $("fReceiver").oninput = e => f.receiver = e.target.value;
+  $("fDeliverer").oninput = e => f.deliverer = e.target.value;
+  $("fNote").oninput = e => { f.note = e.target.value; refresh(); };
+  refresh();
+
+  $("bReview").onclick = () => {
+    const df = diffs(), a = actual();
+    if (Object.keys(df).length && !f.note.trim()) { snack("اكتب توثيق الفروقات أولاً"); return; }
+    let body = `<div>رقم الخفارة: ${esc(f.shiftNumber || "-")}</div><div>المستلم: ${esc(f.receiver || "-")} — المسلِّم: ${esc(f.deliverer || "-")}</div><br>`;
+    CATEGORIES.forEach(cat => {
+      const cl = d.classifications.filter(c => c.category === cat.key);
+      body += `<div><b>${cat.ar}: ${cl.reduce((s, c) => s + a[c.id], 0)}</b></div><div class="muted">${cl.map(c => nm(c.name) + "=" + a[c.id]).join("&nbsp;&nbsp; ")}</div><br>`;
+    });
+    if (Object.keys(df).length) body += `<div class="err">عدد الفروقات: ${Object.keys(df).length}</div>`;
+    body += `<div class="muted">بعد الاعتماد يُحفظ هذا الجرد كرصيد افتتاحي ثابت للخفارة.</div>`;
+    modal("مراجعة الاستلام", body, [
+      { text: "اعتماد الاستلام", onClick: () => {
+          const r = run(() => Repo.confirmReceiving(f.shiftNumber, f.receiver, f.deliverer, a, f.note));
+          closeModal(); if (r.ok) { snack("تم اعتماد استلام الخفارة"); home(); }
+      } },
+      { text: "رجوع للتعديل", onClick: closeModal }
+    ]);
+  };
+};
+
+/* ---------- إضافة / صرف / تسوية ---------- */
+screens.movement = () => {
+  const type = route.type;
+  const title = { ADD: "إضافة رصيد", DISPENSE: "صرف", ADJUSTMENT: "تسوية / تصحيح موثق" }[type];
+  const btnClass = { ADD: "green", DISPENSE: "", ADJUSTMENT: "blue" }[type];
+  setHeader(title, true);
+  const s = Repo.openShift();
+  if (!s) { $("app").innerHTML = `<div class="card">لا توجد خفارة مفتوحة. استلم الخفارة أولاً.</div>`; return; }
+  const st = route.st || (route.st = { tab: 0, selectedId: -1, qty: "", note: "", decrease: true, requestId: uuid() });
+  const cat = CATEGORIES[st.tab].key;
+  const catRows = Repo.rows(s.id).filter(r => r.category === cat);
+
+  let h = categoryTabs(st.tab, false);
+  h += `<b>اختر الفصيلة / التصنيف:</b><div class="chips">${catRows.map(r =>
+        `<button class="chip ${r.classificationId === st.selectedId ? "selected" : ""}" data-cls="${r.classificationId}">${nm(r.name)}&nbsp; (${r.closing})</button>`).join("")}</div>`;
+  if (!catRows.length) h += `<div class="muted">لا توجد تصنيفات لهذا الصنف. أضفها من الإعدادات.</div>`;
+  if (type === "ADJUSTMENT") h += `<div class="chips"><button class="chip ${st.decrease ? "selected" : ""}" id="cDec">نقص (-)</button><button class="chip ${!st.decrease ? "selected" : ""}" id="cInc">زيادة (+)</button></div>`;
+  h += `<label class="field"><span>${type === "ADJUSTMENT" ? "قيمة التسوية" : "الكمية"}</span><input type="tel" inputmode="numeric" id="fQty" value="${esc(st.qty)}"></label>
+    <label class="field"><span>${type === "ADJUSTMENT" ? "سبب التسوية (إلزامي)" : "ملاحظة (اختياري)"}</span><input type="text" id="fNote" value="${esc(st.note)}"></label>
+    <div class="card variant" id="preview"></div>
+    <button class="btn ${btnClass}" id="bSave">حفظ ${title}</button>
+    <div id="recent"></div>`;
+  $("app").innerHTML = h;
+
+  const calc = () => {
+    const sel = catRows.find(r => r.classificationId === st.selectedId);
+    const qty = parseInt(st.qty, 10) || 0;
+    const signedQty = type === "ADJUSTMENT" && st.decrease ? -qty : qty;
+    const available = sel ? sel.closing : 0;
+    const after = Calc.balanceAfter(type, signedQty, available);
+    const validation = !sel ? "اختر الفصيلة أو التصنيف" : Calc.validateMovement(type, signedQty, available, st.note);
+    return { sel, qty, signedQty, available, after, validation };
+  };
+  const refresh = () => {
+    const c = calc();
+    const color = { ADD: "var(--green)", DISPENSE: "var(--primary)", ADJUSTMENT: "var(--blue)" }[type];
+    $("preview").innerHTML = `<b>${CAT[cat].ar}${c.sel ? " — " + nm(c.sel.name) : ""}</b>
+      <div>الرصيد المتاح قبل العملية: ${c.available}</div>
+      <div style="font-weight:700;color:${c.after < 0 ? "red" : color}">الرصيد بعد العملية: ${c.sel && c.qty > 0 ? signed(c.after).replace("+", "") : "-"}</div>
+      <div class="muted">الوقت: يُسجل تلقائياً عند الحفظ (${fmtTime(now())})</div>
+      ${c.validation && (c.qty > 0 || !c.sel) ? `<div class="err">${esc(c.validation)}</div>` : ""}`;
+  };
+  bindTabs(i => { st.tab = i; st.selectedId = -1; render(); });
+  document.querySelectorAll("[data-cls]").forEach(b => b.onclick = () => { st.selectedId = Number(b.dataset.cls); render(); });
+  if (type === "ADJUSTMENT") { $("cDec").onclick = () => { st.decrease = true; render(); }; $("cInc").onclick = () => { st.decrease = false; render(); }; }
+  $("fQty").oninput = e => { e.target.value = digitsOnly(e.target.value); st.qty = e.target.value; refresh(); };
+  $("fNote").oninput = e => { st.note = e.target.value; refresh(); };
+  refresh();
+
+  const recent = Repo.movements(s.id).filter(m => m.type === type).reverse().slice(0, 8);
+  if (recent.length) $("recent").innerHTML = `<h3>آخر العمليات في هذه الخفارة</h3>` + recent.map(m =>
+    `<div class="between mv ${m.voided ? "voided" : ""}"><span>${fmtTime(m.createdAt)}&nbsp; ${CAT[m.category].ar} ${nm(m.classificationName)}</span><b>${type === "ADJUSTMENT" ? signed(m.quantity) : m.quantity}${m.voided ? " (ملغاة)" : ""}</b></div>`).join("");
+
+  let saving = false;
+  $("bSave").onclick = () => {
+    if (saving) return;
+    const c = calc();
+    if (c.validation) { snack(c.validation); return; }
+    saving = true;
+    const r = run(() => Repo.addMovement(s.id, c.sel.classificationId, type, c.signedQty, st.note, st.requestId));
+    saving = false;
+    if (r.ok) {
+      const msg = r.value ? `تم الحفظ: ${MT[type]} ${signed(Calc.effect(type, c.signedQty))} من ${iso(c.sel.name)}. الرصيد الآن ${c.after}` : "هذه الحركة محفوظة مسبقاً";
+      st.requestId = uuid(); st.qty = ""; st.note = "";
+      render(); snack(msg);
+    }
+  };
+};
+
+/* ---------- الرصيد الحالي + سجل الحركات ---------- */
+screens.balance = () => {
+  setHeader("الرصيد الحالي", true);
+  const s = Repo.openShift();
+  if (!s) { $("app").innerHTML = `<div class="card">لا توجد خفارة مفتوحة.</div>`; return; }
+  const st = route.st || (route.st = { tab: 0 });
+  const rows = Repo.rows(s.id);
+  let h = categoryTabs(st.tab, true);
+  if (st.tab < CATEGORIES.length) {
+    const cat = CATEGORIES[st.tab].key, cr = rows.filter(r => r.category === cat);
+    h += `<h3>${catDisplay(cat)}</h3>${balanceTable(cr, Calc.totals(cr))}`;
+  } else {
+    h += `<h3>ملخص المخزون كله</h3>${summaryTable(rows)}`;
+  }
+  h += `<p class="muted">الرصيد الحالي = المستلم + المضاف − المصروف (± التسوية). يتحدث تلقائياً بعد كل عملية.</p>`;
+  const mvs = Repo.movements(s.id).slice().reverse();
+  h += `<div class="card"><h3>حركات هذه الخفارة (${mvs.length})</h3>`;
+  if (!mvs.length) h += `<div class="muted">لا توجد حركات بعد.</div>`;
+  mvs.forEach(m => {
+    h += `<div class="mv"><div class="between"><span><span class="badge ${m.type}">${MT[m.type]}</span> ${CAT[m.category].ar} — <b>${nm(m.classificationName)}</b></span>
+      <b>${m.type === "ADJUSTMENT" ? signed(m.quantity) : m.quantity}</b></div>
+      <div class="between muted"><span>${fmtDateTime(m.createdAt)}${m.note ? " — " + esc(m.note) : ""}</span>
+      ${m.voided ? `<span class="err">ملغاة</span>` : `<button class="btn outline small" data-void="${m.id}">إلغاء</button>`}</div>
+      ${m.voided ? `<div class="muted">سبب الإلغاء: ${esc(m.voidReason)} (${fmtDateTime(m.voidedAt)})</div>` : ""}</div>`;
+  });
+  h += `</div>`;
+  $("app").innerHTML = h;
+  bindTabs(i => { st.tab = i; render(); });
+  document.querySelectorAll("[data-void]").forEach(b => b.onclick = () => {
+    const m = db.movements.find(x => x.id === Number(b.dataset.void));
+    modal("إلغاء حركة", `<div>${MT[m.type]} ${m.quantity} من ${CAT[m.category].ar} ${nm(m.classificationName)}</div>
+      <div class="muted">الحركة لا تُحذف؛ تبقى في السجل والتقرير بعلامة "ملغاة".</div>
+      <label class="field"><span>سبب الإلغاء (إلزامي)</span><input type="text" id="fVoid"></label>`, [
+      { text: "تأكيد الإلغاء", onClick: () => { const r = run(() => Repo.voidMovement(m.id, $("fVoid").value)); if (r.ok) { closeModal(); render(); snack("تم إلغاء الحركة"); } } },
+      { text: "رجوع", onClick: closeModal }
+    ]);
+  });
+};
+
+/* ---------- إنهاء الخفارة ---------- */
+screens.close = () => {
+  setHeader("إنهاء الخفارة والجرد النهائي", true);
+  const s = Repo.openShift();
+  if (!s) { $("app").innerHTML = `<div class="card">لا توجد خفارة مفتوحة.</div>`; return; }
+  const st = route.st || (route.st = { handoverTo: "", notes: "", reviewed: false });
+  const rows = Repo.rows(s.id), negative = Calc.negativeRows(rows);
+  const active = Repo.movements(s.id).filter(m => !m.voided);
+  let h = `<b>الخفارة: ${esc(shiftLabel(s))} — من ${fmtDateTime(s.openedAt)} حتى الآن</b>
+    <div>الحركات: ${active.filter(m => m.type === "ADD").length} إضافة، ${active.filter(m => m.type === "DISPENSE").length} صرف</div><br>`;
+  CATEGORIES.forEach(c => { const cr = rows.filter(r => r.category === c.key); h += `<div class="card"><h3>${catDisplay(c.key)}</h3>${balanceTable(cr, Calc.totals(cr), "الرصيد النهائي")}</div>`; });
+  h += `<div class="card"><h3 style="color:inherit">الملخص الشامل</h3>${summaryTable(rows)}</div>`;
+  if (negative.length) h += `<div class="alert">لا يمكن الإنهاء: يوجد رصيد سالب في ${negative.map(r => nm(r.name)).join("، ")}</div>`;
+  h += `<label class="field"><span>اسم الموظف المستلم للخفارة التالية</span><input type="text" id="fTo" value="${esc(st.handoverTo)}"></label>
+    <label class="field"><span>ملاحظات التقرير</span><textarea id="fNotes">${esc(st.notes)}</textarea></label>
+    <label class="check"><input type="checkbox" id="fRev" ${st.reviewed ? "checked" : ""}><span>راجعتُ الأعداد والحركات وأؤكد صحتها</span></label>
+    <button class="btn purple" id="bClose">اعتماد إنهاء الخفارة</button>
+    <p class="muted">بعد الاعتماد: يُحفظ التقرير، ويصبح الرصيد النهائي هو الرصيد المتوقع للخفارة التالية، ولا يمكن تعديل حركات هذه الخفارة.</p>`;
+  $("app").innerHTML = h;
+  $("fTo").oninput = e => st.handoverTo = e.target.value;
+  $("fNotes").oninput = e => st.notes = e.target.value;
+  $("fRev").onchange = e => st.reviewed = e.target.checked;
+  $("bClose").onclick = () => {
+    if (!st.reviewed) { snack("يرجى تأكيد مراجعة الأعداد أولاً"); return; }
+    if (negative.length) { snack("يوجد رصيد سالب"); return; }
+    modal("تأكيد إنهاء الخفارة", `إجمالي الرصيد النهائي: <b>${Calc.totals(rows).closing}</b> وحدة. هل تريد اعتماد التسليم؟`, [
+      { text: "اعتماد", onClick: () => {
+          const r = run(() => Repo.closeShift(s.id, st.handoverTo, st.notes)); closeModal();
+          if (r.ok) { history_.length = 0; route = { name: "home" }; go("report", { shiftId: s.id }); snack("تم إنهاء الخفارة وحفظ التقرير"); }
+      } },
+      { text: "إلغاء", onClick: closeModal }
+    ]);
+  };
+};
+
+/* ---------- قائمة التقارير ---------- */
+screens.reports = () => {
+  setHeader("تقارير الخفارات السابقة", true);
+  const list = Repo.closedShifts();
+  if (!list.length) { $("app").innerHTML = `<div class="card">لا توجد خفارات مغلقة بعد.</div>`; return; }
+  $("app").innerHTML = list.map(s => {
+    const total = Calc.totals(Repo.closings(s.id)).closing;
+    return `<div class="card" data-open="${s.id}" style="cursor:pointer"><div class="between"><b>خفارة ${esc(shiftLabel(s))}</b><span>الرصيد النهائي: <b>${total}</b></span></div>
+      <div class="muted">${fmtDateTime(s.openedAt)} ← ${fmtDateTime(s.closedAt)}</div>
+      <div class="muted">المستلم: ${esc(s.receiverName || "-")} — سلّم إلى: ${esc(s.handoverToName || "-")}</div></div>`;
+  }).join("");
+  document.querySelectorAll("[data-open]").forEach(c => c.onclick = () => go("report", { shiftId: Number(c.dataset.open) }));
+};
+
+/* ---------- التقرير (A4 قابل للطباعة) ---------- */
+function reportHtml(data) {
+  const s = data.shift, rows = data.rows;
+  let h = `<div class="report"><h1>${esc(data.hospitalName || "مصرف الدم")}</h1><h2>تقرير تسليم واستلام خفارة — مخزون مصرف الدم</h2>
+    <div class="meta"><div>رقم الخفارة: <b>${esc(shiftLabel(s))}</b></div><div>الحالة: <b>${s.status === "CLOSED" ? "مغلقة ومعتمدة" : "مفتوحة (تقرير مؤقت)"}</b></div>
+    <div>بداية الخفارة: ${fmtDateTime(s.openedAt)}</div><div>نهاية الخفارة: ${fmtDateTime(s.closedAt)}</div>
+    <div>المسلِّم عند البداية: ${esc(s.delivererName || "-")}</div><div>الموظف المستلم: ${esc(s.receiverName || "-")}</div>
+    <div>المستلم للخفارة التالية: ${esc(s.handoverToName || "-")}</div><div>تاريخ الطباعة: ${fmtDateTime(now())}</div></div>`;
+  CATEGORIES.forEach(c => { const cr = rows.filter(r => r.category === c.key); h += `<h3>${catDisplay(c.key)}</h3>${balanceTable(cr, Calc.totals(cr), "الرصيد النهائي")}`; });
+  h += `<h3>الملخص الشامل</h3>${summaryTable(rows)}`;
+
+  const diffs = data.openings.filter(o => o.expected != null && o.expected !== o.actual);
+  if (diffs.length || s.receiveNote) {
+    h += `<h3>فروقات الاستلام</h3>`;
+    if (diffs.length) h += `<table><thead><tr><th>الصنف</th><th>الفصيلة</th><th>المتوقع</th><th>الفعلي</th><th>الفرق</th></tr></thead><tbody>${diffs.map(o =>
+      `<tr><td>${CAT[o.category].ar}</td><td>${nm(o.name)}</td><td>${o.expected}</td><td>${o.actual}</td><td>${signed(o.actual - o.expected)}</td></tr>`).join("")}</tbody></table>`;
+    if (s.receiveNote) h += `<p>ملاحظة الاستلام: ${esc(s.receiveNote)}</p>`;
+  }
+  const special = data.movements.filter(m => m.type === "ADJUSTMENT" || m.voided);
+  if (special.length) {
+    h += `<h3>التسويات والحركات الملغاة</h3><table><thead><tr><th>الوقت</th><th>النوع</th><th>الصنف / الفصيلة</th><th>الكمية</th><th>السبب</th></tr></thead><tbody>${special.map(m =>
+      `<tr><td>${fmtDateTime(m.createdAt)}</td><td>${MT[m.type]}${m.voided ? " (ملغاة)" : ""}</td><td>${CAT[m.category].ar} ${nm(m.classificationName)}</td><td>${m.type === "ADJUSTMENT" ? signed(m.quantity) : m.quantity}</td><td>${esc(m.voided ? m.voidReason : m.note)}</td></tr>`).join("")}</tbody></table>`;
+  }
+  h += `<h3>سجل الحركات (${data.movements.length})</h3>`;
+  h += data.movements.length ? `<table><thead><tr><th>الوقت</th><th>النوع</th><th>الصنف</th><th>الفصيلة</th><th>الكمية</th><th>ملاحظة</th></tr></thead><tbody>${data.movements.map(m =>
+      `<tr style="${m.voided ? "text-decoration:line-through;color:#999" : ""}"><td>${fmtTime(m.createdAt)}</td><td>${MT[m.type]}</td><td>${CAT[m.category].ar}</td><td>${nm(m.classificationName)}</td><td>${m.type === "ADJUSTMENT" ? signed(m.quantity) : m.quantity}</td><td>${esc(m.note)}</td></tr>`).join("")}</tbody></table>`
+    : `<p class="muted">لا توجد حركات.</p>`;
+  if (s.closingNotes) h += `<h3>ملاحظات</h3><p>${esc(s.closingNotes)}</p>`;
+  h += `<div class="sign"><div>توقيع المسلِّم<br><br>${esc(s.receiverName || "")}</div><div>توقيع المستلم<br><br>${esc(s.handoverToName || "")}</div></div>
+    <p class="muted" style="text-align:center;margin-top:20px">التقرير لحساب المخزون والتوثيق فقط، ولا يحل محل إجراءات التوافق أو القرارات الطبية المعتمدة.</p></div>`;
+  return h;
+}
+function reportText(data) {
+  const s = data.shift, rows = data.rows;
+  let t = `${data.hospitalName || "مصرف الدم"}\nتقرير خفارة ${shiftLabel(s)}\n${fmtDateTime(s.openedAt)} ← ${fmtDateTime(s.closedAt)}\nالمستلم: ${s.receiverName || "-"} — سلّم إلى: ${s.handoverToName || "-"}\n`;
+  CATEGORIES.forEach(c => {
+    const cr = rows.filter(r => r.category === c.key);
+    t += `\n*${c.ar}* (المجموع ${Calc.totals(cr).closing})\n` + cr.map(r => `${r.name}: ${r.opening} +${r.added} -${r.dispensed}${r.adjustment ? " " + signed(r.adjustment) : ""} = ${r.closing}`).join("\n") + "\n";
+  });
+  t += `\nإجمالي الرصيد النهائي: ${Calc.totals(rows).closing}`;
+  if (s.closingNotes) t += `\nملاحظات: ${s.closingNotes}`;
+  return t;
+}
+screens.report = () => {
+  setHeader("تقرير الخفارة", true);
+  const r = run(() => Repo.report(route.shiftId)); if (!r.ok) return;
+  $("app").innerHTML = `<div class="no-print row2"><button class="btn" id="bPrint">طباعة / حفظ PDF</button><button class="btn secondary" id="bShare">مشاركة كنص</button></div>
+    <div class="card">${reportHtml(r.value)}</div>`;
+  $("bPrint").onclick = () => {
+    try { window.print(); } catch (e) { snack("الطباعة غير مدعومة في هذا الجهاز؛ استخدم المشاركة كنص"); }
+  };
+  $("bShare").onclick = () => shareText(reportText(r.value), "تقرير خفارة");
+};
+
+function shareText(text, title) {
+  if (navigator.share) { navigator.share({ title, text }).catch(() => {}); return; }
+  copyText(text, "تم نسخ التقرير؛ الصقه في واتساب أو أي تطبيق");
+}
+function copyText(text, okMsg) {
+  const fallback = () => {
+    const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); snack(okMsg); } catch (e) { snack("تعذر النسخ"); } ta.remove();
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(() => snack(okMsg), fallback);
+  else fallback();
+}
+
+/* ---------- الإعدادات ---------- */
+screens.settings = () => {
+  setHeader("الإعدادات والتصنيفات", true);
+  const st = route.st || (route.st = { tab: 0 });
+  const cat = CATEGORIES[st.tab].key;
+  const list = db.classifications.filter(c => c.category === cat).sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+  let h = `<div class="card"><h3 style="color:inherit">اسم المستشفى / المصرف</h3>
+      <input type="text" id="fHosp" value="${esc(db.settings.hospital_name || "")}"><button class="btn small" id="bHosp">حفظ</button></div>
+    <div class="card"><h3 style="color:inherit">التصنيفات</h3><div class="muted">إيقاف التصنيف يخفيه من الخفارات الجديدة دون حذف بياناته السابقة.</div></div>`;
+  h += categoryTabs(st.tab, false).replace("tabs no-print", "tabs no-print\" style=\"position:static;margin:0 0 8px");
+  h += `<div class="card">${list.map((c, i) => `<div class="cls-row ${c.active ? "" : "inactive"}"><span class="nm">${nm(c.name)}</span>
+      <button class="icon-btn" data-up="${c.id}" ${i === 0 ? "disabled" : ""}>▲</button>
+      <button class="icon-btn" data-down="${c.id}" ${i === list.length - 1 ? "disabled" : ""}>▼</button>
+      <button class="icon-btn" data-ren="${c.id}">✎</button>
+      <button class="icon-btn" data-act="${c.id}">${c.active ? "إيقاف" : "تفعيل"}</button></div>`).join("")}
+    <div class="row2" style="margin-top:10px"><input type="text" id="fNewCls" placeholder="تصنيف جديد في ${CAT[cat].ar}"></div>
+    <button class="btn small" id="bAddCls">إضافة تصنيف</button></div>
+    <button class="btn outline" id="bAudit">سجل التدقيق</button>`;
+  $("app").innerHTML = h;
+  bindTabs(i => { st.tab = i; render(); });
+  $("bHosp").onclick = () => { if (run(() => Repo.setHospitalName($("fHosp").value)).ok) snack("تم الحفظ"); };
+  $("bAddCls").onclick = () => { if (run(() => Repo.addClassification(cat, $("fNewCls").value)).ok) { render(); snack("تمت الإضافة"); } };
+  document.querySelectorAll("[data-up]").forEach(b => b.onclick = () => { Repo.moveClassification(Number(b.dataset.up), -1); render(); });
+  document.querySelectorAll("[data-down]").forEach(b => b.onclick = () => { Repo.moveClassification(Number(b.dataset.down), 1); render(); });
+  document.querySelectorAll("[data-act]").forEach(b => b.onclick = () => { const c = Repo.cls(Number(b.dataset.act)); Repo.setClassificationActive(c.id, !c.active); render(); });
+  document.querySelectorAll("[data-ren]").forEach(b => b.onclick = () => {
+    const c = Repo.cls(Number(b.dataset.ren));
+    modal("تعديل اسم التصنيف", `<input type="text" id="fRen" value="${esc(c.name)}">`, [
+      { text: "حفظ", onClick: () => { if (run(() => Repo.renameClassification(c.id, $("fRen").value)).ok) { closeModal(); render(); } } },
+      { text: "إلغاء", onClick: closeModal }
+    ]);
+  });
+  $("bAudit").onclick = () => go("audit");
+};
+
+screens.audit = () => {
+  setHeader("سجل التدقيق", true);
+  const list = db.audit.slice().sort((a, b) => b.at - a.at || b.id - a.id).slice(0, 1000);
+  $("app").innerHTML = list.length ? `<div class="card">${list.map(a => `<div class="mv"><div class="between"><b>${esc(a.action)}</b><span class="muted">${fmtDateTime(a.at)}</span></div><div class="muted">${esc(a.details)}</div></div>`).join("")}</div>`
+    : `<div class="card">السجل فارغ.</div>`;
+};
+
+/* ---------- النسخ الاحتياطي ---------- */
+screens.backup = () => {
+  setHeader("النسخ الاحتياطي والاستعادة", true);
+  $("app").innerHTML = `<div class="card">البيانات محفوظة على هذا الجهاز فقط. احفظ نسخة احتياطية بانتظام في مكان آمن (Google Drive، واتساب، أو حاسوب).</div>
+    <button class="btn" id="bExport">تنزيل نسخة احتياطية (ملف)</button>
+    <button class="btn secondary" id="bShareBk">مشاركة النسخة الاحتياطية</button>
+    <button class="btn outline" id="bCopyBk">نسخ النسخة الاحتياطية كنص</button>
+    <div class="card" style="margin-top:16px"><h3 style="color:inherit">الاستعادة</h3>
+      <div class="muted">الاستعادة تستبدل كل البيانات الحالية بالنسخة المختارة. تُحفظ نسخة أمان من البيانات الحالية قبل الاستبدال.</div>
+      <input type="file" id="fFile" accept=".json,application/json,text/plain,*/*" style="margin:10px 0">
+      <div class="muted">أو الصق نص النسخة الاحتياطية هنا:</div>
+      <textarea id="fPaste" placeholder='{"version":1, ...}'></textarea>
+      <button class="btn blue" id="bRestore">استعادة</button>
+      <button class="btn outline small" id="bUndo">التراجع عن آخر استعادة</button></div>`;
+  const backupText = () => { Repo.audit(null, "نسخ احتياطي", "تم تصدير نسخة احتياطية كاملة"); save(); return JSON.stringify(db); };
+  const fileName = () => `blood_bank_backup_${fileStamp()}.json`;
+  $("bExport").onclick = () => {
+    try {
+      const blob = new Blob([backupText()], { type: "application/json" });
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fileName();
+      document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      snack("تم إنشاء ملف النسخة الاحتياطية. إذا لم يُحفظ استخدم المشاركة أو النسخ كنص.");
+    } catch (e) { snack("فشل التنزيل؛ استخدم المشاركة أو النسخ كنص"); }
+  };
+  $("bShareBk").onclick = () => {
+    const text = backupText();
+    try {
+      const file = new File([text], fileName(), { type: "application/json" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { navigator.share({ files: [file], title: "نسخة احتياطية" }).catch(() => {}); return; }
+    } catch (e) { /* ننتقل للمشاركة كنص */ }
+    shareText(text, "نسخة احتياطية - مصرف الدم");
+  };
+  $("bCopyBk").onclick = () => copyText(backupText(), "تم نسخ النسخة الاحتياطية؛ الصقها في ملاحظة أو رسالة واحفظها");
+  const restore = text => {
+    let data;
+    try { data = JSON.parse(text); } catch (e) { snack("الملف المختار ليس نسخة احتياطية صحيحة"); return; }
+    if (!data || !Array.isArray(data.shifts) || !Array.isArray(data.movements) || !Array.isArray(data.openings) || !Array.isArray(data.classifications)) {
+      snack("الملف لا يحتوي على بيانات هذا التطبيق"); return;
+    }
+    modal("تأكيد الاستعادة", "ستُستبدل كل البيانات الحالية بالنسخة المختارة. هل أنت متأكد؟", [
+      { text: "استعادة", onClick: () => {
+          try { localStorage.setItem(STORE_KEY + "_before_restore", JSON.stringify(db)); } catch (e) { /* مساحة غير كافية */ }
+          db = Object.assign(freshDb(), data, { settings: Object.assign({}, freshDb().settings, data.settings || {}) });
+          db.classifications = data.classifications; db.closings = data.closings || []; db.audit = data.audit || [];
+          db.seq = Math.max(db.seq || 0, ...[db.classifications, db.shifts, db.movements, db.audit].flat().map(x => x.id || 0));
+          Repo.audit(null, "استعادة نسخة احتياطية", "تمت استعادة البيانات من نسخة احتياطية"); save();
+          closeModal(); snack("تمت الاستعادة بنجاح"); home();
+      } },
+      { text: "إلغاء", onClick: closeModal }
+    ]);
+  };
+  $("bRestore").onclick = () => {
+    const f = $("fFile").files && $("fFile").files[0];
+    if (f) { const rd = new FileReader(); rd.onload = () => restore(String(rd.result)); rd.onerror = () => snack("تعذر قراءة الملف"); rd.readAsText(f); }
+    else if ($("fPaste").value.trim()) restore($("fPaste").value.trim());
+    else snack("اختر ملفاً أو الصق نص النسخة الاحتياطية");
+  };
+  $("bUndo").onclick = () => {
+    const prev = localStorage.getItem(STORE_KEY + "_before_restore");
+    if (!prev) { snack("لا توجد نسخة أمان سابقة"); return; }
+    modal("التراجع عن الاستعادة", "سيتم إرجاع البيانات كما كانت قبل آخر استعادة.", [
+      { text: "تراجع", onClick: () => { db = JSON.parse(prev); save(); closeModal(); snack("تم التراجع"); home(); } },
+      { text: "إلغاء", onClick: closeModal }
+    ]);
+  };
+};
+
+/* ===================== التشغيل ===================== */
+function render() {
+  closeModal();
+  const s = screens[route.name] || screens.home;
+  try { s(); } catch (e) { console.error(e); $("app").innerHTML = `<div class="card err">حدث خطأ: ${esc(e.message)}</div>`; }
+}
+// مزامنة عند فتح التطبيق في أكثر من نافذة
+window.addEventListener("storage", e => { if (e.key === STORE_KEY) { load(); render(); } });
+load();
+render();
+</script>
+</body>
+</html>

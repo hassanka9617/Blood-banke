@@ -1,0 +1,11 @@
+{
+  "name": "مخزون مصرف الدم",
+  "short_name": "مصرف الدم",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#FFFBFF",
+  "theme_color": "#B71C1C",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+}
